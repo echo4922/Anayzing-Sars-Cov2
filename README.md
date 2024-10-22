@@ -1,0 +1,1 @@
+As part of a graduate-level bioinformatics couse, I was given a mid-term assignment to analyze rapidly evoloving Sars-Covid2 virus. The specific task was with a given - unknown sequencing data, use genome assemblrs to compare contrast the results. Command-line arguments were used in the provided virtual machine. 
