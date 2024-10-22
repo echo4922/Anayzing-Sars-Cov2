@@ -1,0 +1,79 @@
+---
+title: "Eddie_Cho_BIOMI_609_SPRING_2022_Midterm_Part_2"
+output: html_notebook
+---
+##As Part 2 of the midterm assignment, the Burrow Wheeler Transform (BWT) algorithm & the Suffix Array(SA) algorithm were implemented so that the codes would take a given FASTA input file then produces BWT & SA output files as plain text files
+
+##Please note that the BWT algorithm was loosely based on codes by Geert van Geest (https://rpubs.com/geest007/BWT)
+
+#Step-1: Read a given FASTA file, referencegenome.fasta in this case
+```{r}
+#1-A: Read lines of a given FASTA file
+  file_lines <- readLines("referencegenome.fasta")
+#1-B: Remove the first line of the file so that only the strings of A,C,G,T sequences are read
+  p_data <-paste(file_lines[2:length(file_lines)], collapse = "")
+  print(p_data)
+```
+#Step-2: Perform BWT & SA then save outputs as .txt
+```{r}
+#2-A: Create a function called get_output
+  get_output <- function(p_data){
+    p_data_list <- strsplit(p_data, "")[[1]]  #split strings into list
+    p_data_len_list <- length(p_data_list)
+    bwm <- matrix(ncol = p_data_len_list, nrow = p_data_len_list)  #empty matrix
+    bwm[1,1:p_data_len_list] <- p_data_list  #keep the first row as the same
+  
+#2-B: Create for loop
+  for (i in seq(p_data_len_list-1)){
+    p_data_list <- c(p_data_list[p_data_len_list] , p_data_list[1:p_data_len_list-1])
+    bwm[i+1, 1:p_data_len_list] <- p_data_list
+  }
+
+#2-C: Print BWT Matrix
+  print("BWT matrix")
+  print(bwm)
+
+#2-D: Sort matrix based on first column along with concatenating the whole rows in the first column
+  sorted_index <- order(apply(bwm, 1, function(x) paste(x, collapse = "")))
+  print(sorted_index)
+  bwm_sorted <- bwm
+
+#2-E: Create for loop 
+  for (i in seq(p_data_len_list)){
+    row_index <- sorted_index[i]
+    bwm_sorted[i, 1:p_data_len_list] <- bwm[row_index, 1:p_data_len_list]
+  }
+
+#2-F: print sorted the matrix
+  print("Sorted BWT Matrix")
+  print(bwm_sorted)
+
+#2-G obtain the last column of sorted matrix
+  last_col <- bwm_sorted[1:p_data_len_list,p_data_len_list]
+  last_col <- paste(last_col, collapse = "")
+
+#2-H: Obtain the first column for suffix array (lexicographically aka alphabetically sorted)
+  first_col <- bwm_sorted[1:p_data_len_list,1]
+  first_col <- paste(first_col, collapse = "")
+
+#2-I: Save outputs to text files
+  bwt_file<-file("BWT_FASTA_Data.txt")
+  writeLines(c(last_col), bwt_file)
+  close(bwt_file)
+  
+  sa_file<-file("Suffix_Array_FASTA_Data.txt")
+  writeLines(c(first_col), sa_file)
+  close(sa_file)
+  
+  return(list(last_col, first_col))
+}
+
+  output = get_output(p_data)
+  bwt = output[[1]]
+  sa = output[[2]]
+
+  print("Results of BWT:")
+  bwt
+  print("Results of SA:")
+  sa
+```
