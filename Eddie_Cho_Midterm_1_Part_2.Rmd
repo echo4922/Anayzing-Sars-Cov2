@@ -6,74 +6,86 @@ output: html_notebook
 
 ##Please note that the BWT algorithm was loosely based on codes by Geert van Geest (https://rpubs.com/geest007/BWT)
 
+
+## Summary of the Key Sections:
+    #1. Reading and Preparing Data:
+        #The readLines function reads the FASTA file and extracts only the sequence part (excluding the header line).
+    #2. BWT Computation:
+        #The code constructs the Burrows-Wheeler Matrix (BWM) by rotating the string in each row and sorting it
+         lexicographically to obtain the BWT and Suffix Array.
+    #3. Saving and Printing Results:
+        #After generating the BWT and Suffix Array results, the code saves them to text files and prints them to the console.
+
 #Step-1: Read a given FASTA file, referencegenome.fasta in this case
 ```{r}
 #1-A: Read lines of a given FASTA file
   file_lines <- readLines("referencegenome.fasta")
+
 #1-B: Remove the first line of the file so that only the strings of A,C,G,T sequences are read
-  p_data <-paste(file_lines[2:length(file_lines)], collapse = "")
+  p_data <-paste(file_lines[2:length(file_lines)], collapse = "") #Combine all sequence lines into one continuous string
   print(p_data)
 ```
+
 #Step-2: Perform BWT & SA then save outputs as .txt
 ```{r}
 #2-A: Create a function called get_output
   get_output <- function(p_data){
     p_data_list <- strsplit(p_data, "")[[1]]  #split strings into list
-    p_data_len_list <- length(p_data_list)
-    bwm <- matrix(ncol = p_data_len_list, nrow = p_data_len_list)  #empty matrix
+    p_data_len_list <- length(p_data_list) #Store the length of the sequence data (number of characters)
+    bwm <- matrix(ncol = p_data_len_list, nrow = p_data_len_list)  #empty matrix to store the Burrows-Wheeler matrix
     bwm[1,1:p_data_len_list] <- p_data_list  #keep the first row as the same
   
 #2-B: Create for loop
   for (i in seq(p_data_len_list-1)){
-    p_data_list <- c(p_data_list[p_data_len_list] , p_data_list[1:p_data_len_list-1])
-    bwm[i+1, 1:p_data_len_list] <- p_data_list
+    p_data_list <- c(p_data_list[p_data_len_list] , p_data_list[1:p_data_len_list-1]) #Perform the rotation
+    bwm[i+1, 1:p_data_len_list] <- p_data_list #Add the rotated sequence as the next row in the BWT matrix
   }
 
 #2-C: Print BWT Matrix
   print("BWT matrix")
-  print(bwm)
+  print(bwm) #Output the Burrows-Wheeler matrix
 
 #2-D: Sort matrix based on first column along with concatenating the whole rows in the first column
-  sorted_index <- order(apply(bwm, 1, function(x) paste(x, collapse = "")))
-  print(sorted_index)
-  bwm_sorted <- bwm
+  sorted_index <- order(apply(bwm, 1, function(x) paste(x, collapse = ""))) #Sort by lexicographical order of rows
+  print(sorted_index) #Print the sorted indices to the console
+  bwm_sorted <- bwm #Create a copy of the BWT matrix to work with sorted rows
 
 #2-E: Create for loop 
   for (i in seq(p_data_len_list)){
-    row_index <- sorted_index[i]
-    bwm_sorted[i, 1:p_data_len_list] <- bwm[row_index, 1:p_data_len_list]
+    row_index <- sorted_index[i] #Get the index of the sorted row
+    bwm_sorted[i, 1:p_data_len_list] <- bwm[row_index, 1:p_data_len_list] #Reorder rows according to sorted indices
   }
 
 #2-F: print sorted the matrix
   print("Sorted BWT Matrix")
-  print(bwm_sorted)
+  print(bwm_sorted) #Output the sorted BWT matrix
 
 #2-G obtain the last column of sorted matrix
-  last_col <- bwm_sorted[1:p_data_len_list,p_data_len_list]
-  last_col <- paste(last_col, collapse = "")
+  last_col <- bwm_sorted[1:p_data_len_list,p_data_len_list] #Extract the last column of the matrix (which is the BWT result)
+  last_col <- paste(last_col, collapse = "")  #Collapse the last column into a single string
 
 #2-H: Obtain the first column for suffix array (lexicographically aka alphabetically sorted)
-  first_col <- bwm_sorted[1:p_data_len_list,1]
-  first_col <- paste(first_col, collapse = "")
+  first_col <- bwm_sorted[1:p_data_len_list,1] #Extract the first column (which is the Suffix Array result)
+  first_col <- paste(first_col, collapse = "") #Collapse the first column into a single string
 
 #2-I: Save outputs to text files
-  bwt_file<-file("BWT_FASTA_Data.txt")
-  writeLines(c(last_col), bwt_file)
-  close(bwt_file)
+  bwt_file<-file("BWT_FASTA_Data.txt") #Open a file for writing the BWT result
+  writeLines(c(last_col), bwt_file) #Write the BWT result to the file
+  close(bwt_file) #Close the BWT file
   
-  sa_file<-file("Suffix_Array_FASTA_Data.txt")
-  writeLines(c(first_col), sa_file)
-  close(sa_file)
+  sa_file<-file("Suffix_Array_FASTA_Data.txt") #Open a file for writing the Suffix Array result
+  writeLines(c(first_col), sa_file) #Write the Suffix Array result to the file
+  close(sa_file) #Close the Suffix Array file
   
-  return(list(last_col, first_col))
+  return(list(last_col, first_col)) #Return the BWT and Suffix Array results as a list
 }
 
-  output = get_output(p_data)
-  bwt = output[[1]]
-  sa = output[[2]]
+  output = get_output(p_data) #Call the get_output function with the sequence data
+  bwt = output[[1]]  #Extract the BWT result from the output list
+  sa = output[[2]]  #Extract the Suffix Array result from the output list
 
-  print("Results of BWT:")
-  bwt
-  print("Results of SA:")
-  sa
+  print("Results of BWT:") #Print a label indicating the BWT results
+  bwt  #Output the BWT result to the console
+  print("Results of SA:") #Print a label indicating the Suffix Array results
+  sa #Output the Suffix Array result to the console
 ```
